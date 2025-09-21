@@ -103,7 +103,49 @@
         #civResult {
             display: none;
         }
+
+        /* ✅ Mobile-friendly tweaks */
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+
+            button {
+                width: 100%;
+                padding: 14px;
+                font-size: 1em;
+            }
+
+            .flex-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            #history,
+            #civ1History,
+            #civ2History {
+                min-width: auto;
+                width: 100%;
+            }
+
+            #bothResult {
+                font-size: 1em;
+                padding: 14px;
+            }
+
+            body {
+                background: linear-gradient(120deg, rgba(137, 247, 254, 0.9) 0%, rgba(102, 166, 255, 0.9) 100%),
+                    url('images/Aoe2.jpg') no-repeat center center fixed;
+                background-size: cover;
+            }
+        }
     </style>
+
 </head>
 
 <body>
