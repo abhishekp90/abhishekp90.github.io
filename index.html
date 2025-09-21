@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,20 +10,22 @@
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(120deg, rgba(137,247,254,0.7) 0%, rgba(102,166,255,0.7) 100%), url('images/Aoe2.jpg') no-repeat center center fixed;
+            background: linear-gradient(120deg, rgba(137, 247, 254, 0.7) 0%, rgba(102, 166, 255, 0.7) 100%), url('images/Aoe2.jpg') no-repeat center center fixed;
             background-size: cover;
             margin: 0;
             padding: 0;
         }
+
         .container {
             max-width: 700px;
             margin: 60px auto;
             background: #fff;
             padding: 40px 30px 30px 30px;
             border-radius: 18px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
             position: relative;
         }
+
         h1 {
             text-align: center;
             font-size: 2.2em;
@@ -31,6 +34,7 @@
             margin-bottom: 30px;
             letter-spacing: 1px;
         }
+
         #result {
             font-size: 1.3em;
             color: #333;
@@ -38,6 +42,7 @@
             margin: 18px 0 10px 0;
             font-weight: 500;
         }
+
         button {
             background: linear-gradient(90deg, #0078d7 0%, #66a6ff 100%);
             color: #fff;
@@ -47,14 +52,16 @@
             cursor: pointer;
             font-size: 1.1em;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             transition: background 0.2s;
             display: block;
             margin: 0 auto 24px auto;
         }
+
         button:hover {
             background: linear-gradient(90deg, #005fa3 0%, #89f7fe 100%);
         }
+
         #bothResult {
             background: #f0f8ff;
             border-radius: 8px;
@@ -62,34 +69,43 @@
             margin: 0 auto 24px auto;
             font-size: 1.15em;
             color: #0078d7;
-            box-shadow: 0 2px 8px rgba(0,120,215,0.08);
+            box-shadow: 0 2px 8px rgba(0, 120, 215, 0.08);
             text-align: center;
             max-width: 400px;
         }
+
         .flex-container {
             display: flex;
             gap: 40px;
             margin-top: 20px;
             justify-content: center;
         }
-        #history, #civ1History, #civ2History {
+
+        #history,
+        #civ1History,
+        #civ2History {
             background: #f7faff;
             border-radius: 8px;
             padding: 16px 14px;
             min-width: 160px;
-            box-shadow: 0 2px 8px rgba(0,120,215,0.06);
+            box-shadow: 0 2px 8px rgba(0, 120, 215, 0.06);
             font-size: 1em;
             color: #333;
         }
-        #history b, #civ1History b, #civ2History b {
+
+        #history b,
+        #civ1History b,
+        #civ2History b {
             color: #0078d7;
             font-size: 1.08em;
         }
+
         #civResult {
             display: none;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Random Map and Civ Picker</h1>
@@ -107,11 +123,13 @@
     <script>
         let entries = [];
         let history = [];
-const civs = [
-    "Britons","Franks","Goths","Teutons","Japanese","Chinese","Byzantines","Persians","Saracens","Vikings","Mongols","Celts","Spanish","Aztecs","Mayans","Huns","Koreans","Turks","Italians","Incas","Magyars","Slavs","Portuguese","Ethiopians","Malians","Berbers","Khmer","Malay","Vietnamese","Bulgarians","Cumans","Lithuanians","Tatars","Burgundians","Sicilians","Poles","Bohemians","Dravidians","Bengalis","Gujaras","Hindustanis","Armenians-DLC","Georgians-DLC","Shu-DLC","Wei-DLC","Wu-DLC","Jurchens-DLC","Khitans-DLC"
-];
+        const civs = [
+            "Britons", "Franks", "Goths", "Teutons", "Japanese", "Chinese", "Byzantines", "Persians", "Saracens", "Vikings", "Mongols", "Celts", "Spanish", "Aztecs", "Mayans", "Huns", "Koreans", "Turks", "Italians", "Incas", "Magyars", "Slavs", "Portuguese", "Ethiopians", "Malians", "Berbers", "Khmer", "Malay", "Vietnamese", "Bulgarians", "Cumans", "Lithuanians", "Tatars", "Burgundians", "Sicilians", "Poles", "Bohemians", "Dravidians", "Bengalis", "Gujaras", "Hindustanis", "Armenians-DLC", "Georgians-DLC", "Shu-DLC", "Wei-DLC", "Wu-DLC", "Jurchens-DLC", "Khitans-DLC"
+        ];
+        const civsNoDLC = civs.filter(c => !c.includes('-DLC'));
         let civ1History = [];
         let civ2History = [];
+        let lastMunnaPick = null;
         // Load maps.txt automatically
         fetch('maps.txt')
             .then(response => response.text())
@@ -134,26 +152,40 @@ const civs = [
                 document.getElementById('history').innerHTML = '<b>Last 5 picks:</b><br>' + history.map(h => `<div>${h}</div>`).join('');
             }
             // Pick civs
-            let availableCivs = civs.filter(c => !civ1History.includes(c) && !civ2History.includes(c));
+            let availableBittuCivs = civsNoDLC.filter(c => !civ1History.includes(c) && !civ2History.includes(c));
+            let availableMunnaCivs = civs.filter(c => !civ1History.includes(c) && !civ2History.includes(c));
             let civ1Msg = '', civ2Msg = '';
-            if (availableCivs.length < 2) {
+
+            if (availableBittuCivs.length < 1 || availableMunnaCivs.length < 2) {
                 civ1Msg = civ2Msg = 'Not enough civs available.';
             } else {
-                // Pick two distinct civs
-                const idx1 = Math.floor(Math.random() * availableCivs.length);
-                civ1Msg = availableCivs[idx1];
-                availableCivs.splice(idx1, 1); // Remove Civ1 from available
-                const idx2 = Math.floor(Math.random() * availableCivs.length);
-                civ2Msg = availableCivs[idx2];
+                // Pick Bittu first (no DLC)
+                const idx1 = Math.floor(Math.random() * availableBittuCivs.length);
+                civ1Msg = availableBittuCivs[idx1];
+
+                // Remove Bittu’s civ from Munna’s pool
+                availableMunnaCivs = availableMunnaCivs.filter(c => c !== civ1Msg);
+
+                // Pick Munna from the full civ list (can include DLC)
+                // But if Munna’s last pick was DLC, block all DLC this round
+                let possibleMunnaCivs = availableMunnaCivs;
+                if (lastMunnaPick && lastMunnaPick.includes('-DLC')) {
+                    possibleMunnaCivs = possibleMunnaCivs.filter(c => !c.includes('-DLC'));
+                }
+                // Now pick Munna
+                const idx2 = Math.floor(Math.random() * possibleMunnaCivs.length);
+                civ2Msg = possibleMunnaCivs[idx2];
+                lastMunnaPick = civ2Msg; // Remember Munna’s last pick
                 civ1History.unshift(civ1Msg);
                 civ2History.unshift(civ2Msg);
                 if (civ1History.length > 10) civ1History = civ1History.slice(0, 10);
                 if (civ2History.length > 10) civ2History = civ2History.slice(0, 10);
-                document.getElementById('civ1History').innerHTML = '<b>Last 10 Civ1 picks:</b><br>' + civ1History.map(h => `<div>${h}</div>`).join('');
-                document.getElementById('civ2History').innerHTML = '<b>Last 10 Civ2 picks:</b><br>' + civ2History.map(h => `<div>${h}</div>`).join('');
+                document.getElementById('civ1History').innerHTML = '<b>Last 10 Bittu picks:</b><br>' + civ1History.map(h => `<div>${h}</div>`).join('');
+                document.getElementById('civ2History').innerHTML = '<b>Last 10 Munna picks:</b><br>' + civ2History.map(h => `<div>${h}</div>`).join('');
             }
-            document.getElementById('bothResult').innerHTML = `<b>Picked Map:</b> ${mapMsg}<br><b>Civ1:</b> ${civ1Msg}<br><b>Civ2:</b> ${civ2Msg}`;
+            document.getElementById('bothResult').innerHTML = `<b>Picked Map:</b> ${mapMsg}<br><b>Bittu:</b> ${civ1Msg}<br><b>Munna:</b> ${civ2Msg}`;
         }
     </script>
 </body>
+
 </html>
