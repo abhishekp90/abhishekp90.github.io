@@ -1,5 +1,5 @@
-// civs.js
-const civs = [
+// civs
+export const civs = [
   { name: "Britons", dlc: false },
   { name: "Franks", dlc: false },
   { name: "Goths", dlc: false },
@@ -41,13 +41,42 @@ const civs = [
   { name: "Bengalis", dlc: false },
   { name: "Gujaras", dlc: false },
   { name: "Hindustanis", dlc: false },
-  { name: "Armenians-DLC", dlc: true },
-  { name: "Georgians-DLC", dlc: true },
-  { name: "Shu-DLC", dlc: true },
-  { name: "Wei-DLC", dlc: true },
-  { name: "Wu-DLC", dlc: true },
-  { name: "Jurchens-DLC", dlc: true },
-  { name: "Khitans-DLC", dlc: true }
+  { name: "Armenians", dlc: true },
+  { name: "Georgians", dlc: true },
+  { name: "Shu", dlc: true },
+  { name: "Wei", dlc: true },
+  { name: "Wu", dlc: true },
+  { name: "Jurchens", dlc: true },
+  { name: "Khitans", dlc: true }
 ];
 
-export default civs;
+// maps
+export const maps = [
+    "African Clearing",
+    "Alps 2.0",
+    "Amazon Tunnel",
+    "Arena",
+    "Big Freeze",
+    "Black Forest",
+    "Border Dispute",
+    "Cambira 1.0",
+    "Chaos Pit",
+    "Cliffbound",
+    "Crater",
+    "Grand Bara",
+    "Graveyards",
+    "Hideout",
+    "Kilimanjaro",
+    "Land Nomad",
+    "MegaRandom",
+    "Michi",
+    "Mountain Ridge",
+    "QS Arena",
+    "QS Blackforest",
+    "Sherwood Forest",
+    "Team Acropolis",
+    "Two Rivers",
+    "Valley",
+    "Yucatan",
+    "seafood Pie"
+];
