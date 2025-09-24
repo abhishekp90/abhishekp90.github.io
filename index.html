@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <title>Random Map and Civ Picker</title>
     <style>
         body {
@@ -166,78 +167,117 @@
         <div id="civResult"></div>
     </div>
 
+
     <script type="module">
-        import { civs, maps } from './data.js';
+        //import { maps } from './data.js';
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-        let history = [];
-        let civ1History = [];
-        let civ2History = [];
-        let lastMunnaPick = null;
+        window.addEventListener('load', async () => {
+            // --- Supabase setup ---
+            const supabaseUrl = "https://wkkkqcxbpyvzckvjwgkp.supabase.co";
+            const supabaseKey = "sb_publishable_I4gMzk-jleQQ_8ap8X38Cw_-bJX9yNt";
+            const supabase = createClient(supabaseUrl, supabaseKey);
 
-        const civsNoDLC = civs.filter(c => !c.dlc);
+            // --- Variables ---
+            let history = [];
+            let civ1History = [];
+            let civ2History = [];
+            let lastMunnaPick = null;
 
-        function renderHistory() {
-            document.getElementById('history').innerHTML =
-                '<b>Last 5 picks:</b><br>' + history.map(h => `<div>${h}</div>`).join('');
-            document.getElementById('civ1History').innerHTML =
-                '<b>Last 10 Bittu picks:</b><br>' + civ1History.map(h => `<div>${h}</div>`).join('');
-            document.getElementById('civ2History').innerHTML =
-                '<b>Last 10 Munna picks:</b><br>' + civ2History.map(h => `<div>${h}</div>`).join('');
-        }
-
-        function pickRandomBoth() {
-            // Pick map
-            const availableMaps = maps.filter(m => !history.includes(m));
-            let mapMsg = availableMaps.length === 0 ? 'All maps picked recently.' :
-                availableMaps[Math.floor(Math.random() * availableMaps.length)];
-            if (availableMaps.length > 0) {
-                history.unshift(mapMsg);
-                if (history.length > 5) history = history.slice(0, 5);
+            // --- Fetch civs ---
+            async function fetchCivs() {
+                let { data, error } = await supabase.from("civs").select("*");
+                if (error) {
+                    console.error("Error fetching civs:", error);
+                    return [];
+                }
+                console.log("Civs fetched:", data);
+                return data;
             }
 
-            // Pick civs
-            let availableBittuCivs = civsNoDLC.filter(c => !civ1History.includes(c.name) && !civ2History.includes(c.name));
-            let availableMunnaCivs = civs.filter(c => !civ1History.includes(c.name) && !civ2History.includes(c.name));
-
-            let civ1Msg = '', civ2Msg = '';
-
-            if (availableBittuCivs.length < 1 || availableMunnaCivs.length < 2) {
-                civ1Msg = civ2Msg = 'Not enough civs available.';
-            } else {
-                const idx1 = Math.floor(Math.random() * availableBittuCivs.length);
-                const civ1Pick = availableBittuCivs[idx1];
-                civ1Msg = civ1Pick.name;
-
-                availableMunnaCivs = availableMunnaCivs.filter(c => c.name !== civ1Msg);
-
-                let possibleMunnaCivs = availableMunnaCivs;
-                if (lastMunnaPick && lastMunnaPick.dlc) possibleMunnaCivs = possibleMunnaCivs.filter(c => !c.dlc);
-
-                const idx2 = Math.floor(Math.random() * possibleMunnaCivs.length);
-                const civ2Pick = possibleMunnaCivs[idx2];
-                civ2Msg = civ2Pick.name;
-                lastMunnaPick = civ2Pick;
-
-                civ1History.unshift(civ1Msg);
-                civ2History.unshift(civ2Msg);
-                if (civ1History.length > 10) civ1History = civ1History.slice(0, 10);
-                if (civ2History.length > 10) civ2History = civ2History.slice(0, 10);
+            let civs = await fetchCivs();
+            const civsNoDLC = civs.filter(c => !c.dlc);
+            console.log("Civs without DLC:", civsNoDLC);
+            async function fetchMaps() {
+                let { data, error } = await supabase.from("maps").select("*");
+                if (error) {
+                    console.error("Error fetching maps:", error);
+                    return [];
+                }
+                console.log("Maps fetched:", data);
+                return data;
             }
 
-            // Render
-            document.getElementById('bothResult').innerHTML =
-                `<b>Picked Map:</b> ${mapMsg}<br><b>Bittu:</b> ${civ1Msg}<br><b>Munna:</b> ${civ2Msg}`;
-            renderHistory();
+            let maps = await fetchMaps();
+            
+            // --- Render history function ---
+            function renderHistory() {
+                document.getElementById('history').innerHTML =
+                    '<b>Last 5 picks:</b><br>' + history.map(h => `<div>${h}</div>`).join('');
+                document.getElementById('civ1History').innerHTML =
+                    '<b>Last 10 Bittu picks:</b><br>' + civ1History.map(h => `<div>${h}</div>`).join('');
+                document.getElementById('civ2History').innerHTML =
+                    '<b>Last 10 Munna picks:</b><br>' + civ2History.map(h => `<div>${h}</div>`).join('');
+            }
 
-            // Save to localStorage
-            localStorage.setItem('mapHistory', JSON.stringify(history));
-            localStorage.setItem('bittuHistory', JSON.stringify(civ1History));
-            localStorage.setItem('munnaHistory', JSON.stringify(civ2History));
-            localStorage.setItem('lastMunnaPick', JSON.stringify(lastMunnaPick));
-        }
+            // --- Pick maps & civs function ---
+            function pickRandomBoth() {
+                // --- Pick map ---
+                const availableMaps = maps.filter(m => !history.includes(m.name));
+                let mapMsg = availableMaps.length === 0 ? 'All maps picked recently.' :
+                    availableMaps[Math.floor(Math.random() * availableMaps.length)].name;
+                if (availableMaps.length > 0) {
+                    history.unshift(mapMsg);
+                    if (history.length > 5) history = history.slice(0, 5);
+                }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load saved history
+                // --- Pick civs ---
+                let availableBittuCivs = civsNoDLC.filter(c => !civ1History.includes(c.name) && !civ2History.includes(c.name));
+                let availableMunnaCivs = civs.filter(c => !civ1History.includes(c.name) && !civ2History.includes(c.name));
+
+                let civ1Msg = '', civ2Msg = '';
+
+                if (availableBittuCivs.length < 1 || availableMunnaCivs.length < 1) {
+                    civ1Msg = civ2Msg = 'Not enough civs available.';
+                } else {
+                    // Bittu pick
+                    const idx1 = Math.floor(Math.random() * availableBittuCivs.length);
+                    const civ1Pick = availableBittuCivs[idx1];
+                    civ1Msg = civ1Pick.name;
+
+                    // Munna pick
+                    availableMunnaCivs = availableMunnaCivs.filter(c => c.name !== civ1Msg);
+                    let possibleMunnaCivs = availableMunnaCivs;
+                    if (lastMunnaPick && lastMunnaPick.dlc) possibleMunnaCivs = possibleMunnaCivs.filter(c => !c.dlc);
+
+                    if (possibleMunnaCivs.length > 0) {
+                        const idx2 = Math.floor(Math.random() * possibleMunnaCivs.length);
+                        const civ2Pick = possibleMunnaCivs[idx2];
+                        civ2Msg = civ2Pick.name;
+                        lastMunnaPick = civ2Pick;
+                    } else {
+                        civ2Msg = 'No valid Munna picks.';
+                    }
+
+                    civ1History.unshift(civ1Msg);
+                    civ2History.unshift(civ2Msg);
+                    if (civ1History.length > 10) civ1History = civ1History.slice(0, 10);
+                    if (civ2History.length > 10) civ2History = civ2History.slice(0, 10);
+                }
+
+                // --- Render results ---
+                document.getElementById('bothResult').innerHTML =
+                    `<b>Picked Map:</b> ${mapMsg}<br><b>Bittu:</b> ${civ1Msg}<br><b>Munna:</b> ${civ2Msg}`;
+                renderHistory();
+
+                // --- Save to localStorage ---
+                localStorage.setItem('mapHistory', JSON.stringify(history));
+                localStorage.setItem('bittuHistory', JSON.stringify(civ1History));
+                localStorage.setItem('munnaHistory', JSON.stringify(civ2History));
+                localStorage.setItem('lastMunnaPick', JSON.stringify(lastMunnaPick));
+            }
+
+            // --- Load saved history ---
             history = JSON.parse(localStorage.getItem('mapHistory') || '[]');
             civ1History = JSON.parse(localStorage.getItem('bittuHistory') || '[]');
             civ2History = JSON.parse(localStorage.getItem('munnaHistory') || '[]');
@@ -245,9 +285,12 @@
 
             renderHistory();
 
-            // Attach button listeners
-            document.getElementById('pickBtn').addEventListener('click', pickRandomBoth);
-            document.getElementById('resetBtn').addEventListener('click', () => {
+            // --- Button event listeners ---
+            const pickBtn = document.getElementById('pickBtn');
+            const resetBtn = document.getElementById('resetBtn');
+
+            if (pickBtn) pickBtn.addEventListener('click', pickRandomBoth);
+            if (resetBtn) resetBtn.addEventListener('click', () => {
                 history = [];
                 civ1History = [];
                 civ2History = [];
@@ -263,6 +306,7 @@
             });
         });
     </script>
+
 
 </body>
 
