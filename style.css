@@ -1,0 +1,142 @@
+ body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(120deg, rgba(137, 247, 254, 0.7) 0%, rgba(102, 166, 255, 0.7) 100%), url('images/Aoe2.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 60px auto;
+            background: #fff;
+            padding: 40px 30px 30px 30px;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #0078d7;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        #result {
+            font-size: 1.3em;
+            color: #333;
+            text-align: center;
+            margin: 18px 0 10px 0;
+            font-weight: 500;
+        }
+
+        button {
+            background: linear-gradient(90deg, #0078d7 0%, #66a6ff 100%);
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: background 0.2s;
+            display: block;
+            margin: 0 auto 24px auto;
+        }
+
+        button:hover {
+            background: linear-gradient(90deg, #005fa3 0%, #89f7fe 100%);
+        }
+
+        #bothResult {
+            background: #f0f8ff;
+            border-radius: 8px;
+            padding: 18px 20px;
+            margin: 0 auto 24px auto;
+            font-size: 1.15em;
+            color: #0078d7;
+            box-shadow: 0 2px 8px rgba(0, 120, 215, 0.08);
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .flex-container {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        #history,
+        #lastBittu,
+        #lastMunna,
+         #hostResult{
+            background: #f7faff;
+            border-radius: 8px;
+            padding: 16px 14px;
+            min-width: 160px;
+            box-shadow: 0 2px 8px rgba(0, 120, 215, 0.06);
+            font-size: 1em;
+            color: #333;
+        }
+
+        #history b,
+        #lastBittu b,
+        #lastMunna b,
+         #hostResult
+         {
+            color: #0078d7;
+            font-size: 1.08em;
+        }
+
+        #civResult {
+            display: none;
+        }
+
+        /* ✅ Mobile-friendly tweaks */
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+
+            button {
+                width: 100%;
+                padding: 14px;
+                font-size: 1em;
+            }
+
+            .flex-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            #history,
+            #lastBittu,
+            #lastMunna,
+            #hostResult {
+                min-width: auto;
+                width: 100%;
+                font-size: 0.9em;
+                /* 📱 smaller font for readability */
+            }
+
+            #bothResult {
+                font-size: 1em;
+                padding: 14px;
+            }
+
+            body {
+                background: linear-gradient(120deg, rgba(137, 247, 254, 0.9) 0%, rgba(102, 166, 255, 0.9) 100%),
+                    url('images/Aoe2.jpg') no-repeat center center fixed;
+                background-size: cover;
+            }
+        }

@@ -8,146 +8,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <title>Random Map and Civ Picker</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(120deg, rgba(137, 247, 254, 0.7) 0%, rgba(102, 166, 255, 0.7) 100%), url('images/Aoe2.jpg') no-repeat center center fixed;
-            background-size: cover;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 700px;
-            margin: 60px auto;
-            background: #fff;
-            padding: 40px 30px 30px 30px;
-            border-radius: 18px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
-            position: relative;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 2.2em;
-            font-weight: 700;
-            color: #0078d7;
-            margin-bottom: 30px;
-            letter-spacing: 1px;
-        }
-
-        #result {
-            font-size: 1.3em;
-            color: #333;
-            text-align: center;
-            margin: 18px 0 10px 0;
-            font-weight: 500;
-        }
-
-        button {
-            background: linear-gradient(90deg, #0078d7 0%, #66a6ff 100%);
-            color: #fff;
-            border: none;
-            padding: 12px 32px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: background 0.2s;
-            display: block;
-            margin: 0 auto 24px auto;
-        }
-
-        button:hover {
-            background: linear-gradient(90deg, #005fa3 0%, #89f7fe 100%);
-        }
-
-        #bothResult {
-            background: #f0f8ff;
-            border-radius: 8px;
-            padding: 18px 20px;
-            margin: 0 auto 24px auto;
-            font-size: 1.15em;
-            color: #0078d7;
-            box-shadow: 0 2px 8px rgba(0, 120, 215, 0.08);
-            text-align: center;
-            max-width: 400px;
-        }
-
-        .flex-container {
-            display: flex;
-            gap: 40px;
-            margin-top: 20px;
-            justify-content: center;
-        }
-
-        #history,
-        #civ1History,
-        #civ2History {
-            background: #f7faff;
-            border-radius: 8px;
-            padding: 16px 14px;
-            min-width: 160px;
-            box-shadow: 0 2px 8px rgba(0, 120, 215, 0.06);
-            font-size: 1em;
-            color: #333;
-        }
-
-        #history b,
-        #civ1History b,
-        #civ2History b {
-            color: #0078d7;
-            font-size: 1.08em;
-        }
-
-        #civResult {
-            display: none;
-        }
-
-        /* ✅ Mobile-friendly tweaks */
-        @media (max-width: 600px) {
-            .container {
-                margin: 20px;
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 1.6em;
-            }
-
-            button {
-                width: 100%;
-                padding: 14px;
-                font-size: 1em;
-            }
-
-            .flex-container {
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            #history,
-            #civ1History,
-            #civ2History {
-                min-width: auto;
-                width: 100%;
-                font-size: 0.9em;
-                /* 📱 smaller font for readability */
-            }
-
-            #bothResult {
-                font-size: 1em;
-                padding: 14px;
-            }
-
-            body {
-                background: linear-gradient(120deg, rgba(137, 247, 254, 0.9) 0%, rgba(102, 166, 255, 0.9) 100%),
-                    url('images/Aoe2.jpg') no-repeat center center fixed;
-                background-size: cover;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
@@ -156,156 +17,223 @@
         <h1>Random Map and Civ Picker</h1>
         <!-- Removed upload button, using maps.txt automatically -->
         <div id="result"></div>
-        <button id="pickBtn">Pick Maps & Civs</button>
-        <button id="resetBtn">Reset</button>
+        <div class="flex-container">
+            <button id="pickBtn">Pick Civs and Map</button>
+
+            <button id="resetBtn">Reset</button>
+        </div>
+
+
+
         <div id="bothResult"></div>
         <div class="flex-container">
             <div id="history"></div>
-            <div id="civ1History"></div>
-            <div id="civ2History"></div>
+            <div id="lastBittu" ></div>
+            <div id="lastMunna"></div>
+            <div id="bothResult"></div>
         </div>
-        <div id="civResult"></div>
-    </div>
+        
+        <div class="flex-container">
 
+            <button id="hostBtn">Host</button>
 
-    <script type="module">
-        //import { maps } from './data.js';
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        </div>
+        <div id="hostResult"></div>
 
-        window.addEventListener('load', async () => {
-            // --- Supabase setup ---
-            const supabaseUrl = "https://wkkkqcxbpyvzckvjwgkp.supabase.co";
-            const supabaseKey = "sb_publishable_I4gMzk-jleQQ_8ap8X38Cw_-bJX9yNt";
-            const supabase = createClient(supabaseUrl, supabaseKey);
+        <script type="module">
+            import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-            // --- Variables ---
-            let history = [];
-            let civ1History = [];
-            let civ2History = [];
-            let lastMunnaPick = null;
+            window.addEventListener('load', async () => {
+                // --- Supabase setup ---
+                const supabaseUrl = "https://wkkkqcxbpyvzckvjwgkp.supabase.co";
+                const supabaseKey = "sb_publishable_I4gMzk-jleQQ_8ap8X38Cw_-bJX9yNt";
+                const supabase = createClient(supabaseUrl, supabaseKey);
 
-            // --- Fetch civs ---
-            async function fetchCivs() {
-                let { data, error } = await supabase.from("civs").select("*");
-                if (error) {
-                    console.error("Error fetching civs:", error);
-                    return [];
-                }
-                console.log("Civs fetched:", data);
-                return data;
-            }
+                // --- Variables ---
+                let civs = [];
+                let civsNoDLC = [];
+                let maps = [];
+                let history = []; // last 5 maps
 
-            let civs = await fetchCivs();
-            const civsNoDLC = civs.filter(c => !c.dlc);
-            console.log("Civs without DLC:", civsNoDLC);
-            async function fetchMaps() {
-                let { data, error } = await supabase.from("maps").select("*");
-                if (error) {
-                    console.error("Error fetching maps:", error);
-                    return [];
-                }
-                console.log("Maps fetched:", data);
-                return data;
-            }
-
-            let maps = await fetchMaps();
-            
-            // --- Render history function ---
-            function renderHistory() {
-                document.getElementById('history').innerHTML =
-                    '<b>Last 5 picks:</b><br>' + history.map(h => `<div>${h}</div>`).join('');
-                document.getElementById('civ1History').innerHTML =
-                    '<b>Last 10 Bittu picks:</b><br>' + civ1History.map(h => `<div>${h}</div>`).join('');
-                document.getElementById('civ2History').innerHTML =
-                    '<b>Last 10 Munna picks:</b><br>' + civ2History.map(h => `<div>${h}</div>`).join('');
-            }
-
-            // --- Pick maps & civs function ---
-            function pickRandomBoth() {
-                // --- Pick map ---
-                const availableMaps = maps.filter(m => !history.includes(m.name));
-                let mapMsg = availableMaps.length === 0 ? 'All maps picked recently.' :
-                    availableMaps[Math.floor(Math.random() * availableMaps.length)].name;
-                if (availableMaps.length > 0) {
-                    history.unshift(mapMsg);
-                    if (history.length > 5) history = history.slice(0, 5);
+                // --- Utility ---
+                function pickRandomCiv(pool) {
+                    if (!pool || pool.length === 0) return null;
+                    const idx = Math.floor(Math.random() * pool.length);
+                    const pick = pool[idx];
+                    pool.splice(idx, 1);
+                    return pick;
                 }
 
-                // --- Pick civs ---
-                let availableBittuCivs = civsNoDLC.filter(c => !civ1History.includes(c.name) && !civ2History.includes(c.name));
-                let availableMunnaCivs = civs.filter(c => !civ1History.includes(c.name) && !civ2History.includes(c.name));
+                // --- Fetch civs and maps ---
+                async function fetchCivs() {
+                    const { data, error } = await supabase.from("civs").select("*");
+                    if (error) {
+                        console.error("Error fetching civs:", error);
+                        return [];
+                    }
+                    return data.filter(c => c.name);
+                }
 
-                let civ1Msg = '', civ2Msg = '';
+                async function fetchMaps() {
+                    const { data, error } = await supabase.from("maps").select("*");
+                    if (error) {
+                        console.error("Error fetching maps:", error);
+                        return [];
+                    }
+                    return data.filter(m => m.name);
+                }
 
-                if (availableBittuCivs.length < 1 || availableMunnaCivs.length < 1) {
-                    civ1Msg = civ2Msg = 'Not enough civs available.';
-                } else {
-                    // Bittu pick
-                    const idx1 = Math.floor(Math.random() * availableBittuCivs.length);
-                    const civ1Pick = availableBittuCivs[idx1];
-                    civ1Msg = civ1Pick.name;
+                civs = await fetchCivs();
+                civsNoDLC = civs.filter(c => !c.dlc);
+                maps = await fetchMaps();
 
-                    // Munna pick
-                    availableMunnaCivs = availableMunnaCivs.filter(c => c.name !== civ1Msg);
-                    let possibleMunnaCivs = availableMunnaCivs;
-                    if (lastMunnaPick && lastMunnaPick.dlc) possibleMunnaCivs = possibleMunnaCivs.filter(c => !c.dlc);
+                // --- Map history DB ---
+                async function fetchLastMaps() {
+                    const { data, error } = await supabase
+                        .from('map_history')
+                        .select('*')
+                        .order('picked_at', { ascending: false })
+                        .limit(5);
+                    if (error) {
+                        console.error("Error fetching map history:", error);
+                        return [];
+                    }
+                    return data.map(row => row.map_name);
+                }
 
-                    if (possibleMunnaCivs.length > 0) {
-                        const idx2 = Math.floor(Math.random() * possibleMunnaCivs.length);
-                        const civ2Pick = possibleMunnaCivs[idx2];
-                        civ2Msg = civ2Pick.name;
-                        lastMunnaPick = civ2Pick;
-                    } else {
-                        civ2Msg = 'No valid Munna picks.';
+                async function saveMapPick(mapName) {
+                    await supabase.from('map_history').insert([{ map_name: mapName }]);
+
+                    // Maintain max 5 maps
+                    const { data: allPicks } = await supabase
+                        .from('map_history')
+                        .select('*')
+                        .order('picked_at', { ascending: true });
+
+                    if (allPicks.length > 5) {
+                        const excess = allPicks.length - 5;
+                        const idsToDelete = allPicks.slice(0, excess).map(p => p.id);
+                        await supabase.from('map_history').delete().in('id', idsToDelete);
+                    }
+                }
+
+                // --- Civ pick state ---
+                async function fetchPickState(player) {
+                    const { data, error } = await supabase
+                        .from('pick_state')
+                        .select('*')
+                        .eq('player', player)
+                        .single();
+                    if (error) return null;
+                    return data;
+                }
+
+                async function updatePickState(player, remainingCivs, lastCivs) {
+                    await supabase.from('pick_state').upsert({
+                        player,
+                        remaining_civs: remainingCivs,
+                        last_civs: lastCivs,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: ['player'] });
+                }
+
+                // --- Render history ---
+                function renderHistory() {
+                    document.getElementById('history').innerHTML =
+                        '<b>Last 5 maps:</b><br>' + history.map(h => `<div>${h}</div>`).join('');
+                }
+
+                async function renderLastCivs() {
+                    const bittuState = await fetchPickState('bittu');
+                    const munnaState = await fetchPickState('munna');
+
+                    const lastBittu = bittuState?.last_civs || [];
+                    const lastMunna = munnaState?.last_civs || [];
+
+                    document.getElementById('lastBittu').innerHTML =
+                        '<b>Last 5 Bittu picks:</b><br>' + lastBittu.map(c => `<div>${c}</div>`).join('');
+
+                    document.getElementById('lastMunna').innerHTML =
+                        '<b>Last 5 Munna picks:</b><br>' + lastMunna.map(c => `<div>${c}</div>`).join('');
+                }
+
+                // --- Pick civs and map ---
+                async function pickRandomBoth() {
+                    // Map
+                    const availableMaps = maps.filter(m => !history.includes(m.name));
+                    const mapMsg = availableMaps.length === 0
+                        ? 'All maps picked recently.'
+                        : availableMaps[Math.floor(Math.random() * availableMaps.length)].name;
+
+                    if (availableMaps.length > 0) {
+                        history.unshift(mapMsg);
+                        if (history.length > 5) history = history.slice(0, 5);
+                        await saveMapPick(mapMsg);
                     }
 
-                    civ1History.unshift(civ1Msg);
-                    civ2History.unshift(civ2Msg);
-                    if (civ1History.length > 10) civ1History = civ1History.slice(0, 10);
-                    if (civ2History.length > 10) civ2History = civ2History.slice(0, 10);
+                    // Civs
+                    let bittuState = await fetchPickState('bittu');
+                    let munnaState = await fetchPickState('munna');
+
+                    let remainingBittu = bittuState?.remaining_civs || [...civsNoDLC];
+                    let remainingMunna = munnaState?.remaining_civs || [...civs];
+
+                    const civ1Pick = pickRandomCiv(remainingBittu) || 'No Bittu civs left';
+                    const civ2Pick = pickRandomCiv(remainingMunna) || 'No Munna civs left';
+
+                    // Update last 5 civs
+                    let lastBittu = bittuState?.last_civs || [];
+                    let lastMunna = munnaState?.last_civs || [];
+
+                    lastBittu.unshift(civ1Pick.name || civ1Pick);
+                    if (lastBittu.length > 5) lastBittu = lastBittu.slice(0, 5);
+
+                    lastMunna.unshift(civ2Pick.name || civ2Pick);
+                    if (lastMunna.length > 5) lastMunna = lastMunna.slice(0, 5);
+
+                    await updatePickState('bittu', remainingBittu, lastBittu);
+                    await updatePickState('munna', remainingMunna, lastMunna);
+
+                    // Render
+                    document.getElementById('bothResult').innerHTML =
+                        `<b>Picked Map:</b> ${mapMsg}<br><b>Bittu:</b> ${civ1Pick.name || civ1Pick}<br><b>Munna:</b> ${civ2Pick.name || civ2Pick}`;
+
+                    renderHistory();
+                    await renderLastCivs();
                 }
 
-                // --- Render results ---
-                document.getElementById('bothResult').innerHTML =
-                    `<b>Picked Map:</b> ${mapMsg}<br><b>Bittu:</b> ${civ1Msg}<br><b>Munna:</b> ${civ2Msg}`;
+                // --- Host button ---
+                async function hostPick() {
+                    const player = Math.random() < 0.5 ? 'Bittu' : 'Munna';
+                    document.getElementById('hostResult').innerHTML = `<b>Host picked:</b> ${player}`;
+                }
+
+                // --- Reset ---
+                async function resetAll() {
+                    history = [];
+                    renderHistory();
+                    document.getElementById('bothResult').innerHTML = '<b>History has been reset.</b>';
+                    document.getElementById('hostResult').innerHTML = '';
+                    await supabase.from('map_history').delete();
+                    await supabase.from('pick_state').upsert([
+                        { player: 'bittu', remaining_civs: [...civsNoDLC], last_civs: [] },
+                        { player: 'munna', remaining_civs: [...civs], last_civs: [] }
+                    ], { onConflict: ['player'] });
+                    await renderLastCivs();
+                }
+
+                // --- Initialize ---
+                history = await fetchLastMaps();
                 renderHistory();
+                await renderLastCivs();
 
-                // --- Save to localStorage ---
-                localStorage.setItem('mapHistory', JSON.stringify(history));
-                localStorage.setItem('bittuHistory', JSON.stringify(civ1History));
-                localStorage.setItem('munnaHistory', JSON.stringify(civ2History));
-                localStorage.setItem('lastMunnaPick', JSON.stringify(lastMunnaPick));
-            }
-
-            // --- Load saved history ---
-            history = JSON.parse(localStorage.getItem('mapHistory') || '[]');
-            civ1History = JSON.parse(localStorage.getItem('bittuHistory') || '[]');
-            civ2History = JSON.parse(localStorage.getItem('munnaHistory') || '[]');
-            lastMunnaPick = JSON.parse(localStorage.getItem('lastMunnaPick') || 'null');
-
-            renderHistory();
-
-            // --- Button event listeners ---
-            const pickBtn = document.getElementById('pickBtn');
-            const resetBtn = document.getElementById('resetBtn');
-
-            if (pickBtn) pickBtn.addEventListener('click', pickRandomBoth);
-            if (resetBtn) resetBtn.addEventListener('click', () => {
-                history = [];
-                civ1History = [];
-                civ2History = [];
-                lastMunnaPick = null;
-
-                localStorage.removeItem('mapHistory');
-                localStorage.removeItem('bittuHistory');
-                localStorage.removeItem('munnaHistory');
-                localStorage.removeItem('lastMunnaPick');
-
-                renderHistory();
-                document.getElementById('bothResult').innerHTML = '<b>History has been reset.</b>';
+                document.getElementById('pickBtn').addEventListener('click', pickRandomBoth);
+                document.getElementById('hostBtn').addEventListener('click', hostPick);
+                document.getElementById('resetBtn').addEventListener('click', resetAll);
             });
-        });
-    </script>
+
+        </script>
+
 
 
 </body>
