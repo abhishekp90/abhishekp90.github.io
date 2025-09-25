@@ -1,0 +1,192 @@
+
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+window.addEventListener('load', async () => {
+    // --- Supabase setup ---
+    const supabaseUrl = "https://wkkkqcxbpyvzckvjwgkp.supabase.co";
+    const supabaseKey = "sb_publishable_I4gMzk-jleQQ_8ap8X38Cw_-bJX9yNt";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // --- Variables ---
+    let civs = [];
+    let civsNoDLC = [];
+    let maps = [];
+    let history = []; // last 5 maps
+
+    // --- Utility ---
+    function pickRandomCiv(pool) {
+        if (!pool || pool.length === 0) return null;
+        const idx = Math.floor(Math.random() * pool.length);
+        const pick = pool[idx];
+        pool.splice(idx, 1);
+        return pick;
+    }
+
+    // --- Fetch civs and maps ---
+    async function fetchCivs() {
+        const { data, error } = await supabase.from("civs").select("*");
+        if (error) {
+            console.error("Error fetching civs:", error);
+            return [];
+        }
+        return data.filter(c => c.name);
+    }
+
+    async function fetchMaps() {
+        const { data, error } = await supabase.from("maps").select("*");
+        if (error) {
+            console.error("Error fetching maps:", error);
+            return [];
+        }
+        return data.filter(m => m.name);
+    }
+
+    civs = await fetchCivs();
+    civsNoDLC = civs.filter(c => !c.dlc);
+    maps = await fetchMaps();
+
+    // --- Map history DB ---
+    async function fetchLastMaps() {
+        const { data, error } = await supabase
+            .from('map_history')
+            .select('*')
+            .order('picked_at', { ascending: false })
+            .limit(5);
+        if (error) {
+            console.error("Error fetching map history:", error);
+            return [];
+        }
+        return data.map(row => row.map_name);
+    }
+
+    async function saveMapPick(mapName) {
+        await supabase.from('map_history').insert([{ map_name: mapName }]);
+
+        // Maintain max 5 maps
+        const { data: allPicks } = await supabase
+            .from('map_history')
+            .select('*')
+            .order('picked_at', { ascending: true });
+
+        if (allPicks.length > 5) {
+            const excess = allPicks.length - 5;
+            const idsToDelete = allPicks.slice(0, excess).map(p => p.id);
+            await supabase.from('map_history').delete().in('id', idsToDelete);
+        }
+    }
+
+    // --- Civ pick state ---
+    async function fetchPickState(player) {
+        const { data, error } = await supabase
+            .from('pick_state')
+            .select('*')
+            .eq('player', player)
+            .single();
+        if (error) return null;
+        return data;
+    }
+
+    async function updatePickState(player, remainingCivs, lastCivs) {
+        await supabase.from('pick_state').upsert({
+            player,
+            remaining_civs: remainingCivs,
+            last_civs: lastCivs,
+            updated_at: new Date().toISOString()
+        }, { onConflict: ['player'] });
+    }
+
+    // --- Render history ---
+    function renderHistory() {
+        document.getElementById('history').innerHTML =
+            '<b>Last 5 maps:</b><br>' + history.map(h => `<div>${h}</div>`).join('');
+    }
+
+    async function renderLastCivs() {
+        const bittuState = await fetchPickState('bittu');
+        const munnaState = await fetchPickState('munna');
+
+        const lastBittu = bittuState?.last_civs || [];
+        const lastMunna = munnaState?.last_civs || [];
+
+        document.getElementById('lastBittu').innerHTML =
+            '<b>Last 5 Bittu picks:</b><br>' + lastBittu.map(c => `<div>${c}</div>`).join('');
+
+        document.getElementById('lastMunna').innerHTML =
+            '<b>Last 5 Munna picks:</b><br>' + lastMunna.map(c => `<div>${c}</div>`).join('');
+    }
+
+    // --- Pick civs and map ---
+    async function pickRandomBoth() {
+        // Map
+        const availableMaps = maps.filter(m => !history.includes(m.name));
+        const mapMsg = availableMaps.length === 0
+            ? 'All maps picked recently.'
+            : availableMaps[Math.floor(Math.random() * availableMaps.length)].name;
+
+        if (availableMaps.length > 0) {
+            history.unshift(mapMsg);
+            if (history.length > 5) history = history.slice(0, 5);
+            await saveMapPick(mapMsg);
+        }
+
+        // Civs
+        let bittuState = await fetchPickState('bittu');
+        let munnaState = await fetchPickState('munna');
+
+        let remainingBittu = bittuState?.remaining_civs || [...civsNoDLC];
+        let remainingMunna = munnaState?.remaining_civs || [...civs];
+
+        const civ1Pick = pickRandomCiv(remainingBittu) || 'No Bittu civs left';
+        const civ2Pick = pickRandomCiv(remainingMunna) || 'No Munna civs left';
+
+        // Update last 5 civs
+        let lastBittu = bittuState?.last_civs || [];
+        let lastMunna = munnaState?.last_civs || [];
+
+        lastBittu.unshift(civ1Pick.name || civ1Pick);
+        if (lastBittu.length > 5) lastBittu = lastBittu.slice(0, 5);
+
+        lastMunna.unshift(civ2Pick.name || civ2Pick);
+        if (lastMunna.length > 5) lastMunna = lastMunna.slice(0, 5);
+
+        await updatePickState('bittu', remainingBittu, lastBittu);
+        await updatePickState('munna', remainingMunna, lastMunna);
+
+        // Render
+        document.getElementById('bothResult').innerHTML =
+            `<b>Picked Map:</b> ${mapMsg}<br><b>Bittu:</b> ${civ1Pick.name || civ1Pick}<br><b>Munna:</b> ${civ2Pick.name || civ2Pick}`;
+
+        renderHistory();
+        await renderLastCivs();
+    }
+
+    // --- Host button ---
+    async function hostPick() {
+        const player = Math.random() < 0.5 ? 'Bittu' : 'Munna';
+        document.getElementById('hostResult').innerHTML = `<b>Host picked:</b> ${player}`;
+    }
+
+    // --- Reset ---
+    async function resetAll() {
+        history = [];
+        renderHistory();
+        document.getElementById('bothResult').innerHTML = '<b>History has been reset.</b>';
+        document.getElementById('hostResult').innerHTML = '';
+        await supabase.from('map_history').delete();
+        await supabase.from('pick_state').upsert([
+            { player: 'bittu', remaining_civs: [...civsNoDLC], last_civs: [] },
+            { player: 'munna', remaining_civs: [...civs], last_civs: [] }
+        ], { onConflict: ['player'] });
+        await renderLastCivs();
+    }
+
+    // --- Initialize ---
+    history = await fetchLastMaps();
+    renderHistory();
+    await renderLastCivs();
+
+    document.getElementById('pickBtn').addEventListener('click', pickRandomBoth);
+    document.getElementById('hostBtn').addEventListener('click', hostPick);
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+});
+
